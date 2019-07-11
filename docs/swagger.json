@@ -1,0 +1,531 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1",
+    "title": "Billing",
+    "description": "An API for gathering information on tenant usage\n"
+  },
+  "basePath": "/api/v1/internal/",
+  "host": "mender-billing:8080",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/tenants": {
+      "get": {
+        "summary": "Get a list of all tenants and a summary of their usage",
+        "description": "Provides a list of tenants and their total bandwidth, storage, deployment, device count for the given time frame\n",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current month"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current year"
+          },
+          {
+            "name": "week",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current week"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "string",
+            "default": "json",
+            "enum": [
+              "json",
+              "csv"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An CSV/JSON output of tenants and their usage summary.",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/Tenants"
+              }
+            }
+          },
+          "400": {
+            "description": "invalid month and/or year specified",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/metrics/bandwidth": {
+      "get": {
+        "summary": "Get a list of bandwidth usage per tenant",
+        "description": "Provides a list of tenants and their bandwidth usage (parsed by S3 logs)\n",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current month"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current year"
+          },
+          {
+            "name": "week",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current week"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of tenants and their bandwidth usage.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Bandwidth"
+              }
+            }
+          },
+          "400": {
+            "description": "invalid month and/or year specified",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/metrics/storage": {
+      "get": {
+        "summary": "Get a list of storage usage per tenant",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current month"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current year"
+          },
+          {
+            "name": "week",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current week"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of tenants and their average S3 storage usage",
+            "schema": {
+              "$ref": "#/definitions/Storage"
+            }
+          },
+          "400": {
+            "description": "invalid month and/or year specified",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/metrics/deployments": {
+      "get": {
+        "summary": "Get a list of deployments per tenant",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current month"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current year"
+          },
+          {
+            "name": "week",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current week"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of tenants and their average S3 storage usage",
+            "schema": {
+              "$ref": "#/definitions/Deployments"
+            }
+          },
+          "400": {
+            "description": "invalid month and/or year specified",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/metrics/devices/new": {
+      "get": {
+        "summary": "Get a list of newly activated devices",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current month"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current year"
+          },
+          {
+            "name": "week",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current week"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of tenants and the amount of newly accepted devices for the month specified.",
+            "schema": {
+              "$ref": "#/definitions/DevicesNew"
+            }
+          },
+          "400": {
+            "description": "invalid month and/or year specified",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/metrics/devices/subscribed": {
+      "get": {
+        "summary": "Get a list of devices currently subscribed for the month",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current month"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current year"
+          },
+          {
+            "name": "week",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "integer",
+            "default": "current week"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The device authentication data set status was successfully updated.",
+            "schema": {
+              "$ref": "#/definitions/DevicesSubscribed"
+            }
+          },
+          "400": {
+            "description": "invalid month and/or year specified",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/device": {
+      "post": {
+        "summary": "Post when a new device is accepted",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "format": "Bearer [token]",
+            "description": "Contains the JWT token issued by the User Administration and Authentication Service."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The device was successfully registered"
+          },
+          "400": {
+            "description": "invalid month and/or year specified",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Tenants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string"
+          },
+          "tenant_name": {
+            "type": "string"
+          },
+          "average_size": {
+            "type": "integer"
+          },
+          "total_bytes_transferred": {
+            "type": "integer"
+          },
+          "devices_targeted": {
+            "type": "integer"
+          },
+          "new_device_activations": {
+            "type": "integer"
+          },
+          "subscribed_devices": {
+            "type": "integer"
+          }
+        }
+      },
+      "example": {
+        "tenant_id": "5ab20927a955f6000132e104",
+        "tenant_name": "foo",
+        "average_size": 123,
+        "total_bytes_transferred": 123,
+        "devices_targeted": 123,
+        "new_device_activations": 5,
+        "subscribed_devices": 5
+      }
+    },
+    "Bandwidth": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string"
+          },
+          "tenant_name": {
+            "type": "string"
+          },
+          "total_bytes_consumed": {
+            "type": "integer",
+            "description": "Total bandwidth consumed on S3 in bytes"
+          }
+        }
+      },
+      "example": {
+        "tenant_id": "5ab20927a955f6000132e104",
+        "tenant_name": "foo",
+        "total_bytes_consumed": 123
+      }
+    },
+    "Storage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string"
+          },
+          "tenant_name": {
+            "type": "string"
+          },
+          "average_storage_size": {
+            "type": "integer",
+            "description": "Average storage size on S3 in bytes"
+          }
+        }
+      },
+      "example": {
+        "tenant_id": "5ab20927a955f6000132e104",
+        "tenant_name": "foo",
+        "average_storage_size": 80085
+      }
+    },
+    "Deployments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string"
+          },
+          "tenant_name": {
+            "type": "string"
+          },
+          "devices_targeted": {
+            "type": "integer",
+            "description": "Total deployment count"
+          }
+        }
+      },
+      "example": {
+        "tenant_id": "5ab20927a955f6000132e104",
+        "tenant_name": "foo",
+        "devices_targeted": 21
+      }
+    },
+    "DevicesNew": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string"
+          },
+          "tenant_name": {
+            "type": "string"
+          },
+          "activated_devices": {
+            "type": "integer",
+            "description": "Total devices activated during this period"
+          }
+        }
+      },
+      "example": {
+        "tenant_id": "5ab20927a955f6000132e104",
+        "tenant_name": "foo",
+        "activated_devices": 1
+      }
+    },
+    "DevicesSubscribed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string"
+          },
+          "tenant_name": {
+            "type": "string"
+          },
+          "subscribed_devices": {
+            "type": "integer",
+            "description": "Total devices subscribed during this period"
+          }
+        }
+      },
+      "example": {
+        "tenant_id": "5ab20927a955f6000132e104",
+        "tenant_name": "foo",
+        "subscribed_devices": 13
+      }
+    },
+    "Error": {
+      "description": "Error descriptor",
+      "type": "string"
+    }
+  }
+}
